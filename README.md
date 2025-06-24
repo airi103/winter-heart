@@ -11,7 +11,7 @@
 > [!NOTE]
 This bot is not production-ready. It was created as an experiment rather than for practical use. It also doesn't have many commands.
 
-### 📦Environment Variables
+## 📦 Environment Variables
 
 To run the bot you need to have two environmental variables defined. Create a `.env` file in the project root with the following variables:
 
