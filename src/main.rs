@@ -1,14 +1,20 @@
 use poise::serenity_prelude as serenity;
 
 use dotenv::dotenv;
+use sqlx::{Pool, Sqlite};
 use std::time::Instant;
 
 mod commands;
+mod db;
 use crate::commands::about::about;
+use crate::commands::data::daily;
+use crate::commands::data::inventory;
 use crate::commands::user_info::user_info;
+use crate::db::initialize_db;
 
 struct Data {
     start_time: Instant,
+    pool: Pool<Sqlite>,
 } // User data, which is stored and accessible in all command invocations
 type Error = Box<dyn std::error::Error + Send + Sync>;
 type Context<'a> = poise::Context<'a, Data, Error>;
@@ -27,7 +33,7 @@ async fn main() {
             event_handler: |ctx, event, framework, data| {
                 Box::pin(event_handler(ctx, event, framework, data))
             },
-            commands: vec![user_info(), about()],
+            commands: vec![user_info(), about(), daily(), inventory()],
             ..Default::default()
         })
         .setup(move |ctx, _ready, framework| {
@@ -40,7 +46,11 @@ async fn main() {
                 );
                 poise::builtins::register_in_guild(ctx, &framework.options().commands, guild_id)
                     .await?;
-                Ok(Data { start_time })
+
+                let pool = initialize_db()
+                    .await
+                    .unwrap_or_else(|e| panic!("Failed to initialize database: {e}"));
+                Ok(Data { start_time, pool })
             })
         })
         .build();
